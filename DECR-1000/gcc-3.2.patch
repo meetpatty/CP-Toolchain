@@ -1,0 +1,62 @@
+--- gcc-3.2-old/include/obstack.h	2001-03-15 08:44:38.000000000 +0000
++++ gcc-3.2-new/include/obstack.h	2026-03-15 12:32:11.238789223 +0000
+@@ -158,6 +158,8 @@
+ # endif
+ #endif
+ 
++#define LV(type,lvalue) (*((type*)((void*)(&lvalue))))
++
+ struct _obstack_chunk		/* Lives at front of each chunk. */
+ {
+   char  *limit;			/* 1 past end of this chunk */
+@@ -423,7 +425,7 @@
+ ({ struct obstack *__o = (OBSTACK);					\
+    if (__o->next_free + sizeof (void *) > __o->chunk_limit)		\
+      _obstack_newchunk (__o, sizeof (void *));				\
+-   *((void **)__o->next_free)++ = ((void *)datum);			\
++   *(LV(void**, __o->next_free))++ = ((void *)datum); \
+    (void) 0; })
+ 
+ # define obstack_int_grow(OBSTACK,datum)				\
+--- gcc-3.2-old/gcc/cpplib.c	2002-11-27 09:40:43.000000000 +0000
++++ gcc-3.2-new/gcc/cpplib.c	2026-03-15 13:58:59.800871860 +0000
+@@ -199,7 +199,7 @@
+    did use this notation in its preprocessed output.  */
+ static const directive linemarker_dir =
+ {
+-  do_linemarker, U"#", 1, KANDR, IN_I
++  do_linemarker, (const U_CHAR *)"#", 1, KANDR, IN_I
+ };
+ 
+ #define SEEN_EOL() (pfile->cur_token[-1].type == CPP_EOF)
+@@ -566,7 +566,7 @@
+   const cpp_token *header;
+ 
+   if (pfile->directive == &dtable[T_PRAGMA])
+-    dir = U"pragma dependency";
++    dir = (const U_CHAR *)"pragma dependency";
+   else
+     dir = pfile->directive->name;
+ 
+--- gcc-3.2-old/gcc/cpplex.c	2002-02-25 01:52:21.000000000 +0000
++++ gcc-3.2-new/gcc/cpplex.c	2026-03-15 13:59:38.246015431 +0000
+@@ -56,7 +56,7 @@
+ };
+ 
+ static const unsigned char *const digraph_spellings[] =
+-{ U"%:", U"%:%:", U"<:", U":>", U"<%", U"%>" };
++{ (const U_CHAR *)"%:", (const U_CHAR *)"%:%:", (const U_CHAR *)"<:", (const U_CHAR *)":>", (const U_CHAR *)"<%", (const U_CHAR *)"%>" };
+ 
+ #define OP(e, s) { SPELL_OPERATOR, U s           },
+ #define TK(e, s) { s,              U STRINGX (e) },
+--- gcc-3.2-old/gcc/tradcpp.c	2003-02-03 01:59:58.000000000 +0000
++++ gcc-3.2-new/gcc/tradcpp.c	2026-03-15 14:00:21.811310431 +0000
+@@ -3637,7 +3637,7 @@
+   HASHNODE *save_defined;
+   int value;
+ 
+-  save_defined = install (U"defined", -1, T_SPEC_DEFINED, -1);
++  save_defined = install ((const unsigned char *)"defined", -1, T_SPEC_DEFINED, -1);
+   temp_obuf = expand_to_temp_buffer (buf, buf + length, 0);
+   delete_macro (save_defined);	/* clean up special symbol */
+ 
