@@ -178,7 +178,7 @@ fi
 if [ ! -f "$BINUTILS_BUILD_DIR/install.done" ]; then
    cd "$BINUTILS_BUILD_DIR"
    echo "Intalling binutils"
-   make install
+   make install MAKEINFO="$BINUTILS_SRC_DIR/missing makeinfo"
    touch install.done
 fi
 

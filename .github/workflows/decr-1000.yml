@@ -1,0 +1,39 @@
+name: Build and Upload Toolchain
+
+on:
+  push:
+    paths:
+      - '.github/workflows/decr-1000.yml'
+      - 'DECR-1000/**'
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install build-essential autoconf cpio p7zip-full wget
+
+    - name: Build Toolchain
+      run: |
+        sudo mkdir -p /opt/decr-1000-cp-toolchain
+        sudo chown $USER:$USER /opt/decr-1000-cp-toolchain && sudo chmod 755 /opt/decr-1000-cp-toolchain
+        cd DECR-1000
+        ./build.sh
+
+    - name: Create archive
+      run: |
+        tar -czf decr-1000-cp-toolchain.tar.gz /opt/decr-1000-cp-toolchain
+
+    - name: Upload archive
+      uses: actions/upload-artifact@v4
+      with:
+        name: decr-1000-cp-toolchain
+        path: decr-1000-cp-toolchain.tar.gz
